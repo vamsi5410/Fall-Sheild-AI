@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "HealthAI",
-    "slug": "healthai",
+    "name": "Fall Sheild AI",
+    "slug": "fallsheildai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "fallsheildai",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.myapp"
+      "bundleIdentifier": "com.fallsheildai.app"
     },
     "android": {
-      "package": "com.myapp",
+      "package": "com.fallsheildai.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
