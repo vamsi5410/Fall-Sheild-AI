@@ -1,0 +1,119 @@
+HealthAI – Real-Time IoT Health Monitoring App
+🔹 Project Prompt
+
+Develop an Android-based real-time health monitoring application that continuously retrieves patient physiological data from a cloud IoT platform and intelligently detects abnormal health conditions.
+
+The system uses live data streamed from ThingSpeak Channel ID and visualizes key health parameters while providing emergency alerts via WhatsApp.
+
+⚙️ System Overview
+
+IoT medical sensors collect patient health data and upload it to:
+
+👉 ThingSpeak Cloud Platform
+
+Using:
+
+📡 Channel ID: YOUR_CHANNEL_ID
+
+The Android application fetches live data using the API:
+
+https://api.thingspeak.com/channels/YOUR_CHANNEL_ID/feeds/last.json
+
+📊 Monitored Health Parameters
+
+The app continuously monitors:
+
+Heart Rate (BPM) → field1
+
+SpO₂ Level (%) → field2
+
+Blood Glucose (mg/dL) → field3
+
+Body Temperature → field4
+
+ECG Signal → field5
+
+📈 Real-Time Visualization
+
+The application:
+
+Displays live health values
+
+Plots a continuous ECG waveform
+
+Updates data every few seconds
+
+🧠 Intelligent Health Analysis
+
+The app evaluates incoming health data and detects abnormal patterns such as:
+
+High Heart Rate
+
+Low SpO₂ Levels
+
+Elevated Glucose
+
+If any of the following conditions occur:
+
+Heart Rate > 120 BPM
+SpO₂ < 85%
+Glucose > 200 mg/dL
+
+
+The patient status is marked as:
+
+🚨 ABNORMAL
+
+Otherwise:
+
+✅ NORMAL
+
+🚨 Emergency Alert System
+
+Upon detecting abnormal health conditions, the app:
+
+Triggers a WhatsApp alert
+
+Sends emergency notification to caregiver
+
+Using:
+
+https://api.whatsapp.com/send?phone=CARETAKER_NUMBER&text=Emergency detected!
+
+📡 Data Flow
+
+IoT Sensors → ThingSpeak Channel → Android App → ECG Graph → Health Status → WhatsApp Alert
+
+🛠 Technology Stack
+
+Android (Kotlin)
+
+ThingSpeak Cloud
+
+REST API
+
+Real-Time Graph Visualization
+
+WhatsApp Intent Integration
+
+💡 Applications
+
+Elderly Monitoring
+
+Remote Patient Tracking
+
+Smart Healthcare Systems
+
+Emergency Detection
+
+🎯 Outcome
+
+A lightweight Android health monitoring application capable of:
+
+Real-time visualization
+
+Continuous ECG tracking
+
+Early detection of abnormal health conditions
+
+Immediate caregiver notification
