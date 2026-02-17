@@ -11,7 +11,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import Colors from '@/constants/colors';
-import { HealthReading, generateWhatsAppUrl, getAbnormalReasons } from '@/lib/health-data';
+import { HealthReading, generateWhatsAppUrl } from '@/lib/health-data';
 
 interface StatusBannerProps {
   reading: HealthReading | null;
@@ -52,11 +52,15 @@ export function StatusBanner({ reading, caretakerPhone }: StatusBannerProps) {
   if (!reading) return null;
 
   const isAbnormal = reading.status === 'ABNORMAL';
-  const reasons = isAbnormal ? getAbnormalReasons(reading.heartRate, reading.spo2, reading.glucose) : [];
+  const criticalCount = reading.risks.filter((r) => r.severity === 'critical').length;
+  const warningCount = reading.risks.filter((r) => r.severity === 'warning').length;
 
   const handleAlert = async () => {
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    }
+    if (!caretakerPhone) {
+      return;
     }
     const url = generateWhatsAppUrl(caretakerPhone, reading);
     try {
@@ -82,11 +86,28 @@ export function StatusBanner({ reading, caretakerPhone }: StatusBannerProps) {
             <Text style={[styles.statusText, isAbnormal ? styles.textAbnormal : styles.textNormal]}>
               {reading.status}
             </Text>
-            {reasons.length > 0 && (
-              <Text style={styles.reasonText}>{reasons.join(' | ')}</Text>
+            {isAbnormal && (
+              <View style={styles.riskSummary}>
+                {criticalCount > 0 && (
+                  <View style={styles.riskBadge}>
+                    <View style={[styles.riskDot, { backgroundColor: Colors.danger }]} />
+                    <Text style={[styles.riskBadgeText, { color: Colors.danger }]}>
+                      {criticalCount} Critical
+                    </Text>
+                  </View>
+                )}
+                {warningCount > 0 && (
+                  <View style={styles.riskBadge}>
+                    <View style={[styles.riskDot, { backgroundColor: Colors.warning }]} />
+                    <Text style={[styles.riskBadgeText, { color: Colors.warning }]}>
+                      {warningCount} Warning
+                    </Text>
+                  </View>
+                )}
+              </View>
             )}
           </View>
-          {isAbnormal && (
+          {isAbnormal && caretakerPhone.length > 0 && (
             <Pressable
               onPress={handleAlert}
               style={({ pressed }) => [styles.alertBtn, { opacity: pressed ? 0.7 : 1 }]}
@@ -152,11 +173,24 @@ const styles = StyleSheet.create({
   textAbnormal: {
     color: Colors.danger,
   },
-  reasonText: {
-    fontFamily: 'Inter_400Regular',
+  riskSummary: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 6,
+  },
+  riskBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  riskDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  riskBadgeText: {
+    fontFamily: 'Inter_500Medium',
     fontSize: 11,
-    color: Colors.danger,
-    marginTop: 4,
   },
   alertBtn: {
     width: 44,

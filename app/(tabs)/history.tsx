@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import Colors from '@/constants/colors';
 import { HistoryItem } from '@/components/HistoryItem';
-import { HealthReading, fetchRecentReadings } from '@/lib/health-data';
+import { HealthReading, ThresholdSettings, fetchRecentReadings, loadThresholds } from '@/lib/health-data';
 
 type FilterType = 'all' | 'abnormal';
 
@@ -28,7 +28,8 @@ export default function HistoryScreen() {
   const loadData = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
-      const data = await fetchRecentReadings();
+      const thresh = await loadThresholds();
+      const data = await fetchRecentReadings(thresh);
       setReadings(data);
     } catch (e) {
       console.log('Failed to load history');

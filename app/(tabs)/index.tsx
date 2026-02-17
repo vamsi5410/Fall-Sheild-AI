@@ -14,9 +14,14 @@ import Colors from '@/constants/colors';
 import { VitalCard } from '@/components/VitalCard';
 import { ECGChart } from '@/components/ECGChart';
 import { StatusBanner } from '@/components/StatusBanner';
-import { HealthReading, fetchLatestReading } from '@/lib/health-data';
+import { RiskCard } from '@/components/RiskCard';
+import {
+  HealthReading,
+  ThresholdSettings,
+  fetchLatestReading,
+  loadThresholds,
+} from '@/lib/health-data';
 
-const CARETAKER_PHONE = '911';
 const POLL_INTERVAL = 5000;
 
 export default function DashboardScreen() {
@@ -27,17 +32,25 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [thresholds, setThresholds] = useState<ThresholdSettings | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevReadingRef = useRef<HealthReading | null>(null);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
       setError(null);
-      const data = await fetchLatestReading();
+      let thresh = thresholds;
+      if (!thresh) {
+        thresh = await loadThresholds();
+        setThresholds(thresh);
+      }
+      const data = await fetchLatestReading(thresh, prevReadingRef.current);
+      prevReadingRef.current = data;
       setReading(data);
       setEcgHistory((prev) => {
         const next = [...prev, data.ecg];
-        return next.length > 50 ? next.slice(-50) : next;
+        return next.length > 60 ? next.slice(-60) : next;
       });
       setLastUpdated(new Date());
     } catch (e: any) {
@@ -46,15 +59,22 @@ export default function DashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
+  }, [thresholds]);
+
+  useEffect(() => {
+    loadThresholds().then((t) => {
+      setThresholds(t);
+    });
   }, []);
 
   useEffect(() => {
+    if (!thresholds) return;
     fetchData();
     intervalRef.current = setInterval(() => fetchData(), POLL_INTERVAL);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [fetchData]);
+  }, [thresholds]);
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
 
@@ -108,7 +128,10 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      <StatusBanner reading={reading} caretakerPhone={CARETAKER_PHONE} />
+      <StatusBanner
+        reading={reading}
+        caretakerPhone={thresholds?.caretakerPhone || ''}
+      />
 
       <View style={styles.vitalsGrid}>
         <VitalCard
@@ -118,7 +141,7 @@ export default function DashboardScreen() {
           icon="heart"
           iconFamily="ionicons"
           color={Colors.accent}
-          isAbnormal={reading ? reading.heartRate > 120 : false}
+          isAbnormal={reading && thresholds ? reading.heartRate > thresholds.heartRateHigh : false}
         />
         <VitalCard
           title="SpO2"
@@ -127,7 +150,7 @@ export default function DashboardScreen() {
           icon="water"
           iconFamily="ionicons"
           color="#4DA6FF"
-          isAbnormal={reading ? reading.spo2 < 85 : false}
+          isAbnormal={reading && thresholds ? reading.spo2 < thresholds.spo2Low : false}
         />
         <VitalCard
           title="Glucose"
@@ -136,19 +159,34 @@ export default function DashboardScreen() {
           icon="nutrition"
           iconFamily="ionicons"
           color={Colors.warning}
-          isAbnormal={reading ? reading.glucose > 200 : false}
+          isAbnormal={reading && thresholds ? reading.glucose > thresholds.glucoseHigh : false}
         />
         <VitalCard
           title="Temperature"
           value={reading?.temperature || 0}
-          unit="F"
+          unit="C"
           icon="thermometer"
           iconFamily="ionicons"
-          color={Colors.success}
+          color="#FF6B35"
+          isAbnormal={reading && thresholds ? reading.temperature > thresholds.temperatureHigh : false}
         />
       </View>
 
       <ECGChart ecgValues={ecgHistory} currentValue={reading?.ecg || 0} />
+
+      {reading && reading.risks.length > 0 && (
+        <View style={styles.risksSection}>
+          <View style={styles.riskHeader}>
+            <Ionicons name="warning" size={16} color={Colors.danger} />
+            <Text style={styles.riskHeaderText}>Risk Analysis</Text>
+          </View>
+          <View style={styles.risksGrid}>
+            {reading.risks.map((risk, i) => (
+              <RiskCard key={`${risk.type}-${i}`} risk={risk} index={i} />
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={styles.infoRow}>
         <View style={styles.infoItem}>
@@ -238,6 +276,24 @@ const styles = StyleSheet.create({
     color: Colors.warning,
   },
   vitalsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  risksSection: {
+    gap: 10,
+  },
+  riskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  riskHeaderText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
+    color: Colors.text,
+  },
+  risksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',

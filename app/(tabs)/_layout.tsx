@@ -18,6 +18,14 @@ function NativeTabLayout() {
         <Icon sf={{ default: "clock", selected: "clock.fill" }} />
         <Label>History</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="report">
+        <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
+        <Label>Report</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon sf={{ default: "gearshape", selected: "gearshape.fill" }} />
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -72,6 +80,24 @@ function ClassicTabLayout() {
           title: "History",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="report"
+        options={{
+          title: "Report",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="document-text" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />
